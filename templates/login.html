@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="modal open" id="login-modal" style="position:relative; z-index:1; background:none;">
+    <div class="modal-content"
+        style="text-align: center; margin: 50px auto; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h2>Acceso Admin</h2>
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Contraseña"
+                    style="text-align: center; width: 100%; padding: 10px; margin-bottom: 10px;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+        </form>
+        {% if error %}
+        <p style="color: red; margin-top: 10px;">{{ error }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

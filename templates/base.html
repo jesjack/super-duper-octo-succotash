@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Punto de Venta</title>
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Admin Punto de Venta</h1>
+        {% if logged_in %}
+        <a href="/logout" id="btn-logout"
+            style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:4px; font-size:0.8rem; float:right; text-decoration:none;">Salir</a>
+        {% endif %}
+    </header>
+
+    {% if logged_in %}
+    <nav id="main-nav">
+        <a href="/dashboard" class="{{ 'active' if active_page == 'dashboard' else '' }}">Dashboard</a>
+        <a href="/products" class="{{ 'active' if active_page == 'products' else '' }}">Productos</a>
+    </nav>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script type="module">
+        import { initHeartbeat } from '/static/js/heartbeat.js';
+        // Initialize heartbeat with 30 second interval
+        initHeartbeat(30000);
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

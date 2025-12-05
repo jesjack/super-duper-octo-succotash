@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <input type="text" id="search-products" placeholder="Buscar producto..."
+        style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+</div>
+
+<div class="card">
+    <ul class="item-list" id="products-list">
+        <!-- Products here -->
+    </ul>
+</div>
+
+<a href="/products/new" class="fab" style="text-decoration: none;">+</a>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { loadProducts } from '/static/js/modules/products.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProducts();
+    });
+</script>
+{% endblock %}

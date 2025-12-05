@@ -1,0 +1,743 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+:root {
+    --primary: #4F46E5;
+    --bg: #F3F4F6;
+    --card: #FFFFFF;
+    --text: #1F2937;
+}
+
+header {
+    background: var(--primary);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /* jesjack changes */
+    display: flex;
+    justify-content: center;
+
+    :first-child {
+        flex: 1;
+    }
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: space-around;
+    background: white;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+
+    /* jesjack changes */
+    a {
+        text-decoration: none;
+        color: var(--text);
+        font-weight: bold;
+
+        &.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+    }
+}
+
+nav button {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #666;
+    cursor: pointer;
+}
+
+nav button.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    font-weight: bold;
+}
+
+/* Content */
+main {
+    padding: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    /* Space for FAB */
+}
+
+/* Cards */
+.stats-grid {
+    display: flex;
+    justify-content: space-between;
+
+    .stat-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #888;
+        text-align: center;
+    }
+}
+
+/* List */
+.item-list {
+    list-style: none;
+    padding: 0;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: bold;
+    display: block;
+}
+
+.item-meta {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.item-actions button {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    margin-left: 5px;
+    font-size: 0.8rem;
+}
+
+.btn-edit {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-delete {
+    color: #D9534F;
+    border-color: #D9534F;
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: white;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: #eee;
+    color: #333;
+}
+
+/* Wheel Picker Styles */
+.picker-container {
+    display: flex;
+    justify-content: space-between;
+    height: 150px;
+    position: relative;
+    background: #f8f8f8;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    /* Fade effect top/bottom */
+    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.picker-column {
+    flex: 1;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    text-align: center;
+    scrollbar-width: none;
+    /* Firefox */
+    padding-top: 50px;
+    /* Spacer handled by padding now */
+    padding-bottom: 50px;
+}
+
+.picker-column::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.picker-item {
+    height: 50px;
+    line-height: 50px;
+    scroll-snap-align: center;
+    font-size: 1rem;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: transform 0.2s, opacity 0.2s, color 0.2s;
+    transform-origin: center center;
+}
+
+.picker-highlight {
+    position: absolute;
+    top: 50px;
+    /* (150 - 50) / 2 */
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: rgba(74, 144, 226, 0.1);
+    border-top: 1px solid var(--primary);
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.item:last-child {
+    border-bottom: none;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-weight: bold;
+    display: block;
+}
+
+.item-meta {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.item-actions button {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    margin-left: 5px;
+    font-size: 0.8rem;
+}
+
+.btn-edit {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-delete {
+    color: #D9534F;
+    border-color: #D9534F;
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: white;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: #eee;
+    color: #333;
+}
+
+/* Wheel Picker Styles */
+.picker-container {
+    display: flex;
+    justify-content: space-between;
+    height: 150px;
+    position: relative;
+    background: #f8f8f8;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    /* Fade effect top/bottom */
+    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.picker-column {
+    flex: 1;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    text-align: center;
+    scrollbar-width: none;
+    /* Firefox */
+    padding-top: 50px;
+    /* Spacer handled by padding now */
+    padding-bottom: 50px;
+}
+
+.picker-column::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.picker-item {
+    height: 50px;
+    line-height: 50px;
+    scroll-snap-align: center;
+    font-size: 1rem;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: transform 0.2s, opacity 0.2s, color 0.2s;
+    transform-origin: center center;
+}
+
+.picker-highlight {
+    position: absolute;
+    top: 50px;
+    /* (150 - 50) / 2 */
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: rgba(74, 144, 226, 0.1);
+    border-top: 1px solid var(--primary);
+    border-bottom: 1px solid var(--primary);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Barcode Preview */
+.barcode-preview {
+    text-align: center;
+    background: white;
+    /* White background for the transparent barcode */
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.barcode-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.barcode-wrapper img {
+    width: 100%;
+    height: 3cm;
+    object-fit: fill;
+    /* Stretch to fill */
+    display: block;
+    image-rendering: pixelated;
+    /* Keep sharp if scaled */
+}
+
+.btn-edit {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-delete {
+    color: #D9534F;
+    border-color: #D9534F;
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: white;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: #eee;
+    color: #333;
+}
+
+/* Wheel Picker Styles */
+.picker-container {
+    display: flex;
+    justify-content: space-between;
+    height: 150px;
+    position: relative;
+    background: #f8f8f8;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    /* Fade effect top/bottom */
+    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.picker-column {
+    flex: 1;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    text-align: center;
+    scrollbar-width: none;
+    /* Firefox */
+    padding-top: 50px;
+    /* Spacer handled by padding now */
+    padding-bottom: 50px;
+}
+
+.picker-column::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.picker-item {
+    height: 50px;
+    line-height: 50px;
+    scroll-snap-align: center;
+    font-size: 1rem;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: transform 0.2s, opacity 0.2s, color 0.2s;
+    transform-origin: center center;
+}
+
+.picker-highlight {
+    position: absolute;
+    top: 50px;
+    /* (150 - 50) / 2 */
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: rgba(74, 144, 226, 0.1);
+    border-top: 1px solid var(--primary);
+    border-bottom: 1px solid var(--primary);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Barcode Preview */
+.barcode-preview {
+    text-align: center;
+    background: white;
+    /* White background for the transparent barcode */
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.barcode-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.barcode-wrapper img {
+    width: 100%;
+    height: 3cm;
+    object-fit: fill;
+    /* Stretch to fill */
+    display: block;
+    image-rendering: pixelated;
+    /* Keep sharp if scaled */
+}
+
+.barcode-text {
+    font-family: monospace;
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    margin-top: 5px;
+    color: #000;
+    font-weight: bold;
+}
+
+/* Utilities */
+.hidden {
+    display: none;
+}
+
+/* Prevent text selection on interactive items */
+.item,
+.sale-item-row {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}

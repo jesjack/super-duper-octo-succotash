@@ -1,0 +1,13 @@
+pywebview
+flask-cors
+wmi
+pypdf
+escpos
+psutil
+werkzeug
+python-barcode
+flask
+django-qrcode
+requests
+pillow
+customtkinter

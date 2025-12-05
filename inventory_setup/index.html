@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventario Inicial</title>
+    <style>
+        :root {
+            --primary: #6200ee;
+            --primary-dark: #3700b3;
+            --secondary: #03dac6;
+            --bg: #f5f5f5;
+            --surface: #ffffff;
+            --text: #000000;
+            --text-secondary: #666666;
+            --error: #b00020;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: var(--surface);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        main {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: background-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Camera & Image */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #camera-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            bottom: 16px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* Product List */
+        .product-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            gap: 12px;
+        }
+
+        .product-thumb {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .product-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 90;
+        }
+
+        /* Modal/Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <h1 id="page-title">Inventario</h1>
+            <div id="header-actions">
+                <!-- Dynamic actions -->
+            </div>
+        </header>
+
+        <!-- VIEW: Home/List -->
+        <div id="view-home" class="view active">
+            <div style="padding: 16px 0;">
+                <div id="product-list">
+                    <!-- Items injected here -->
+                    <div style="text-align: center; padding: 40px; color: #888;">
+                        No hay productos.<br>Toca + para agregar.
+                    </div>
+                </div>
+            </div>
+            <div class="fab" onclick="app.navigate('capture')">+</div>
+
+            <div style="padding: 16px; border-top: 1px solid #eee; background: white; position: sticky; bottom: 0;">
+                <button class="btn btn-primary" onclick="app.generatePDF()">Generar PDF de Etiquetas</button>
+                <button class="btn btn-outline" onclick="app.clearData()">Borrar Todo</button>
+            </div>
+        </div>
+
+        <!-- VIEW: Capture -->
+        <div id="view-capture" class="view">
+            <div style="padding: 16px;">
+                <div class="camera-container">
+                    <img id="img-preview" src="" style="display:none; width:100%; height:100%; object-fit:cover;">
+                    <div id="camera-placeholder" style="color: white; text-align: center;">
+                        <p>Toca abajo para tomar foto</p>
+                    </div>
+                </div>
+
+                <!-- FIX: Use label for better mobile compatibility -->
+                <label class="btn btn-secondary" style="display: block; text-align: center; cursor: pointer;">
+                    📷 Tomar Foto
+                    <input type="file" id="inp-camera" accept="image/*" capture="environment" style="display: none;"
+                        onchange="app.handleImage(this)">
+                </label>
+                <p style="text-align: center; font-size: 12px; color: #666; margin-top: 4px; margin-bottom: 20px;">
+                    Si la cámara no abre, revisa los permisos del navegador.
+                </p>
+
+                <div class="form-group">
+                    <label>Nombre del Producto</label>
+                    <input type="text" id="inp-name" placeholder="Ej. Blusa Roja M">
+                </div>
+
+                <div class="form-group">
+                    <label>Precio</label>
+                    <input type="number" id="inp-price" placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label>Cantidad de Etiquetas a Imprimir</label>
+                    <div class="qty-control" style="justify-content: center;">
+                        <div class="qty-btn" onclick="app.adjustQty('inp-qty', -1)">-</div>
+                        <input type="number" id="inp-qty" value="1" style="width: 60px; text-align: center;">
+                        <div class="qty-btn" onclick="app.adjustQty('inp-qty', 1)">+</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button class="btn btn-secondary" onclick="app.navigate('home')">Cancelar</button>
+                    <button class="btn btn-primary" onclick="app.saveProduct()">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading" class="loading-overlay">
+            <div class="spinner"></div>
+            <p style="margin-top: 16px;">Procesando...</p>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="vendor/pdf-lib.min.js"></script>
+    <script src="vendor/bwip-js.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/pdf_generator.js"></script>
+
+</body>
+
+</html>

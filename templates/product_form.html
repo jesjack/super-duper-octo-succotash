@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2 id="form-title">Nuevo Producto</h2>
+    <input type="hidden" id="prod-id">
+
+    <div class="form-group">
+        <label>Foto del Producto</label>
+        <input type="file" id="prod-image" accept="image/*" capture="environment" style="display: none;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('prod-image').click()"
+            style="width: 100%; margin-bottom: 10px;">
+            📷 Tomar / Subir Foto
+        </button>
+        <div id="image-preview-container" style="text-align: center; margin-bottom: 10px; display: none;">
+            <img id="image-preview" src="" alt="Preview"
+                style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Código de Barras</label>
+        <div class="barcode-preview" id="barcode-container">
+            <!-- Image injected here -->
+            <span style="color:#888">Generando...</span>
+        </div>
+        <input type="hidden" id="prod-barcode">
+    </div>
+
+    <div class="form-group">
+        <label>Composición del Nombre</label>
+        <div class="picker-container">
+            <div class="picker-highlight"></div>
+
+            <div class="picker-column" id="col-type"></div>
+            <div class="picker-column" id="col-fabric"></div>
+            <div class="picker-column" id="col-detail"></div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Precio</label>
+        <div class="picker-container">
+            <div class="picker-highlight"></div>
+
+            <div class="picker-column" id="col-price-100"></div>
+            <div class="picker-column" id="col-price-10"></div>
+            <div class="picker-column" id="col-price-1"></div>
+        </div>
+        <input type="hidden" id="prod-price">
+    </div>
+
+    <div class="modal-actions">
+        <a href="/products" class="btn btn-secondary">Cancelar</a>
+        <button class="btn btn-primary" id="btn-save">Guardar</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { initProductForm } from '/static/js/modules/product_form.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initProductForm();
+    });
+</script>
+{% endblock %}

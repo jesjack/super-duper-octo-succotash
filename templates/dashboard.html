@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Sección: Turno Actual (Siempre visible para Localhost/Admin) -->
+<div class="section-header">
+    <h3>📊 Resumen del Turno Actual</h3>
+    {% if not logged_in %}
+    <span class="badge badge-info">Vista Pública (Local)</span>
+    {% endif %}
+</div>
+
+<div class="stats-grid">
+    <div class="card stat-card">
+        <div class="stat-value" id="initial-cash">$0.00</div>
+        <div class="stat-label">
+            💰 Fondo Inicial
+            {% if logged_in %}
+            <a href="/session/edit_cash" style="text-decoration: none; color: inherit; margin-left: 5px;">✏️</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value" id="session-sales">$0.00</div>
+        <div class="stat-label">📈 Ventas Turno</div>
+    </div>
+    <div class="card stat-card highlight">
+        <div class="stat-value" id="box-total">$0.00</div>
+        <div class="stat-label">💵 Total en Caja</div>
+    </div>
+</div>
+
+<div class="card">
+    <h4>Ventas del Turno</h4>
+    <ul class="item-list" id="session-sales-list">
+        <!-- Session Sales here -->
+        <li class="empty-msg">No hay ventas en este turno.</li>
+    </ul>
+</div>
+
+<!-- Sección: Historial (Solo Admin) -->
+<div id="historical-section" style="display: none;">
+    <hr class="divider">
+    <div class="section-header">
+        <h3>🗄️ Historial Completo (Admin)</h3>
+    </div>
+
+    <div class="card stat-card">
+        <div class="stat-value" id="total-revenue">$0.00</div>
+        <div class="stat-label">Ingresos Históricos Totales</div>
+    </div>
+
+    <div class="card">
+        <h4>Últimas Ventas (Histórico)</h4>
+        <ul class="item-list" id="historical-sales-list">
+            <!-- Historical Sales here -->
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { loadStats } from '/static/js/modules/dashboard.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        // Refresh every 5 seconds
+        setInterval(loadStats, 5000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="section-header">
+        <h3>💰 Editar Fondo Inicial</h3>
+    </div>
+
+    <p style="text-align: center; color: #666; margin-bottom: 20px;">
+        Selecciona el nuevo monto para el fondo inicial de hoy.
+    </p>
+
+    <!-- Wheel Picker Container -->
+    <div class="picker-container" id="cash-picker">
+        <div class="picker-highlight"></div>
+        <!-- 4 Columns for Integers -->
+        <div class="picker-column" id="col-1000"></div>
+        <div class="picker-column" id="col-100"></div>
+        <div class="picker-column" id="col-10"></div>
+        <div class="picker-column" id="col-1"></div>
+    </div>
+
+    <div class="barcode-preview" style="margin-top: 20px; min-height: auto;">
+        <div class="barcode-text" id="cash-display" style="font-size: 2rem;">$0</div>
+    </div>
+
+    <div class="modal-actions" style="justify-content: space-between; margin-top: 30px;">
+        <a href="/dashboard" class="btn btn-secondary"
+            style="text-decoration: none; text-align: center; flex: 1; margin-right: 10px;">Cancelar</a>
+        <button class="btn btn-primary" id="btn-save" style="flex: 1;">Guardar Cambios</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import { API_URL } from '/static/js/modules/common.js';
+
+    const currentCash = {{ current_cash }};
+    const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const ITEM_HEIGHT = 50;
+
+    function initPicker() {
+        // Parse current cash
+        const cashInt = Math.floor(currentCash);
+        const strCash = cashInt.toString().padStart(4, '0');
+        const values = strCash.split('').map(Number); // [1000s, 100s, 10s, 1s]
+
+        setupColumn('col-1000', DIGITS, values[0]);
+        setupColumn('col-100', DIGITS, values[1]);
+        setupColumn('col-10', DIGITS, values[2]);
+        setupColumn('col-1', DIGITS, values[3]);
+
+        updateDisplay();
+    }
+
+    function setupColumn(id, items, initialValue) {
+        const col = document.getElementById(id);
+        if (!col) return;
+
+        // Infinite scroll needs duplication: [items, items, items]
+        const allItems = [...items, ...items, ...items];
+        col.innerHTML = allItems.map(item => `<div class="picker-item" data-val="${item}">${item}</div>`).join('');
+
+        // Set initial position (Middle set)
+        const baseIndex = items.indexOf(initialValue);
+        const targetIndex = items.length + baseIndex;
+        col.scrollTop = targetIndex * ITEM_HEIGHT;
+
+        col.addEventListener('scroll', () => {
+            const scrollTop = col.scrollTop;
+            const totalHeight = items.length * ITEM_HEIGHT;
+
+            // Infinite Scroll Logic
+            if (scrollTop < ITEM_HEIGHT) {
+                col.scrollTop = scrollTop + totalHeight;
+                return;
+            } else if (scrollTop > totalHeight * 2 - ITEM_HEIGHT) {
+                col.scrollTop = scrollTop - totalHeight;
+                return;
+            }
+
+            updatePerspective(col);
+
+            // Debounce display update
+            clearTimeout(col.displayTimeout);
+            col.displayTimeout = setTimeout(updateDisplay, 50);
+        });
+
+        updatePerspective(col);
+    }
+
+    function updatePerspective(col) {
+        const center = col.scrollTop + 75; // Container height 150 / 2
+        const items = col.querySelectorAll('.picker-item');
+
+        items.forEach(item => {
+            const itemCenter = item.offsetTop + (ITEM_HEIGHT / 2);
+            const dist = Math.abs(center - itemCenter);
+
+            let scale = 1 - (dist / 150) * 0.4;
+            scale = Math.max(0.6, Math.min(1.2, scale));
+
+            let opacity = 1 - (dist / 100) * 0.8;
+            opacity = Math.max(0.2, Math.min(1, opacity));
+
+            const isSelected = dist < ITEM_HEIGHT / 2;
+            item.style.color = isSelected ? 'var(--primary)' : '#888';
+            item.style.fontWeight = isSelected ? 'bold' : 'normal';
+            item.style.transform = `scale(${scale})`;
+            item.style.opacity = opacity;
+
+            if (isSelected) {
+                col.dataset.value = item.dataset.val;
+            }
+        });
+    }
+
+    function getPickerValue(id) {
+        const col = document.getElementById(id);
+        return col.dataset.value || "0";
+    }
+
+    function updateDisplay() {
+        const v1000 = getPickerValue('col-1000');
+        const v100 = getPickerValue('col-100');
+        const v10 = getPickerValue('col-10');
+        const v1 = getPickerValue('col-1');
+
+        const total = parseInt(v1000) * 1000 + parseInt(v100) * 100 + parseInt(v10) * 10 + parseInt(v1);
+        document.getElementById('cash-display').textContent = `$${total}`;
+    }
+
+    document.getElementById('btn-save').addEventListener('click', async () => {
+        const v1000 = getPickerValue('col-1000');
+        const v100 = getPickerValue('col-100');
+        const v10 = getPickerValue('col-10');
+        const v1 = getPickerValue('col-1');
+
+        const total = parseInt(v1000) * 1000 + parseInt(v100) * 100 + parseInt(v10) * 10 + parseInt(v1);
+
+        try {
+            const res = await fetch(`${API_URL}/session/update_cash`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: total })
+            });
+
+            if (res.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                alert('Error al actualizar el fondo.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error de conexión.');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', initPicker);
+</script>
+{% endblock %}
