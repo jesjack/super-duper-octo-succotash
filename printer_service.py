@@ -1,4 +1,9 @@
-import win32print
+import sys
+import subprocess
+try:
+    import win32print
+except ImportError:
+    win32print = None
 from escpos.printer import Dummy
 import datetime
 
@@ -10,21 +15,59 @@ class PrinterService:
         """
         Attempts to automatically find the thermal printer.
         """
-        try:
-            printers = [p[2] for p in win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
+        if sys.platform == 'win32':
+            if not win32print:
+                print("win32print library not found")
+                return None
+
+            try:
+                printers = [p[2] for p in win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS)]
+                
+                # 1. Look for "ThermalPrinter" (User defined)
+                for p in printers:
+                    if "ThermalPrinter" in p:
+                        return p
+                
+                # 2. Look for USB/Generic ports
+                printers_2 = win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS, None, 2)
+                for p in printers_2:
+                    if "USB" in p[3] or "Generic" in p[4] or "Text Only" in p[4]:
+                        return p[1]
+            except Exception as e:
+                print(f"Printer detection error: {e}")
+        else:
+            # Linux / CUPS implementation
+            try:
+                # 1. Try to find a default printer
+                try:
+                    result = subprocess.check_output(['lpstat', '-d'], stderr=subprocess.STDOUT).decode('utf-8')
+                    if "system default destination:" in result:
+                        printer = result.split(":")[1].strip()
+                        if printer and printer != "no system default destination":
+                            return printer
+                except Exception:
+                    pass
+
+                # 2. Look for any printer that might be a POS printer
+                # lpstat -a lists all accepting printers
+                result = subprocess.check_output(['lpstat', '-a'], stderr=subprocess.STDOUT).decode('utf-8')
+                for line in result.splitlines():
+                    # Format: "PrinterName accepting requests since..."
+                    parts = line.split()
+                    if parts:
+                        name = parts[0]
+                        # Common keywords for thermal printers
+                        if any(k in name.upper() for k in ['THERMAL', 'POS', 'EPSON', 'BIXLON', 'STAR', 'GENERIC']):
+                            return name
+                
+                # 3. Just return the first available printer if any
+                if result:
+                    first_line = result.splitlines()[0]
+                    if first_line:
+                        return first_line.split()[0]
             
-            # 1. Look for "ThermalPrinter" (User defined)
-            for p in printers:
-                if "ThermalPrinter" in p:
-                    return p
-            
-            # 2. Look for USB/Generic ports
-            printers_2 = win32print.EnumPrinters(win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS, None, 2)
-            for p in printers_2:
-                if "USB" in p[3] or "Generic" in p[4] or "Text Only" in p[4]:
-                    return p[1]
-        except Exception as e:
-            print(f"Printer detection error: {e}")
+            except Exception as e:
+                print(f"Linux printer detection error: {e}")
         
         return None
 
@@ -74,17 +117,35 @@ class PrinterService:
             # Send to Printer
             raw_data = dummy.output
             
-            hPrinter = win32print.OpenPrinter(self.printer_name)
-            try:
-                hJob = win32print.StartDocPrinter(hPrinter, 1, ("Receipt", None, "RAW"))
+            if sys.platform == 'win32':
+                if not win32print:
+                    print("win32print not available")
+                    return False
+                    
+                hPrinter = win32print.OpenPrinter(self.printer_name)
                 try:
-                    win32print.StartPagePrinter(hPrinter)
-                    win32print.WritePrinter(hPrinter, raw_data)
-                    win32print.EndPagePrinter(hPrinter)
+                    hJob = win32print.StartDocPrinter(hPrinter, 1, ("Receipt", None, "RAW"))
+                    try:
+                        win32print.StartPagePrinter(hPrinter)
+                        win32print.WritePrinter(hPrinter, raw_data)
+                        win32print.EndPagePrinter(hPrinter)
+                    finally:
+                        win32print.EndDocPrinter(hPrinter)
                 finally:
-                    win32print.EndDocPrinter(hPrinter)
-            finally:
-                win32print.ClosePrinter(hPrinter)
+                    win32print.ClosePrinter(hPrinter)
+            else:
+                # Linux implementation using lp command
+                # -d specifies destination, -o raw sends raw bytes (crucial for ESC/POS)
+                cmd = ['lp', '-d', self.printer_name, '-o', 'raw']
+                try:
+                    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout, stderr = process.communicate(input=raw_data)
+                    if process.returncode != 0:
+                        print(f"lp error: {stderr.decode('utf-8')}")
+                        return False
+                except Exception as e:
+                    print(f"Error executing lp: {e}")
+                    return False
                 
             return True
             
