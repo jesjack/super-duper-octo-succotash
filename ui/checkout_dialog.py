@@ -10,7 +10,8 @@ class CheckoutDialog(ctk.CTkToplevel):
         
         self.title("Cobrar")
         self.geometry("400x400")
-        self.grab_set()
+        # Fix for Linux: wait for window to be viewable before grabbing focus
+        self.after(200, lambda: self.grab_set())
         
         # Center relative to parent if possible, else screen center
         try:
