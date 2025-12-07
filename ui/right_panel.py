@@ -122,22 +122,65 @@ class RightPanel(ctk.CTkFrame):
             return "127.0.0.1"
 
     def show_qr_code(self):
-        ip = self.get_local_ip()
-        url = f"http://{ip}:5000"
-        
-        qr_win = ctk.CTkToplevel(self)
-        qr_win.title("Acceso Admin")
-        qr_win.geometry("300x350")
-        qr_win.grab_set()
-        
-        ctk.CTkLabel(qr_win, text="Escanear para Acceder", font=FONT_HEADER).pack(pady=10)
-        
-        qr = qrcode.QRCode(box_size=10, border=2)
-        qr.add_data(url)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white").get_image()
-        
-        ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(200, 200))
-        
-        ctk.CTkLabel(qr_win, image=ctk_img, text="").pack(pady=10)
-        ctk.CTkLabel(qr_win, text=url, font=FONT_BODY, text_color="gray").pack(pady=5)
+        try:
+            ip = self.get_local_ip()
+            url = f"http://{ip}:5000"
+            
+            qr_win = ctk.CTkToplevel(self)
+            qr_win.title("Acceso Admin")
+            qr_win.geometry("300x350")
+            
+            # Ensure window is on top (fixes Windows issue)
+            qr_win.transient(self.winfo_toplevel())
+            qr_win.attributes('-topmost', True)
+            qr_win.lift()
+            
+            # Fix Linux grab error: Wait for window to be visible
+            qr_win.update()
+            qr_win.after(100, lambda: qr_win.grab_set())
+            
+            ctk.CTkLabel(qr_win, text="Escanear para Acceder", font=FONT_HEADER).pack(pady=10)
+            
+            # Robust way to get QRCode class
+            try:
+                import qrcode
+                QRClass = qrcode.QRCode
+            except AttributeError:
+                # Fallback for weird package environments
+                import qrcode.main
+                QRClass = qrcode.main.QRCode
+
+            qr = QRClass(box_size=10, border=2)
+            qr.add_data(url)
+            qr.make(fit=True)
+            img_factory = qr.make_image(fill_color="black", back_color="white")
+            
+            # Compatibility for different qrcode library versions/wrappers
+            if hasattr(img_factory, 'get_image'):
+                img = img_factory.get_image()
+            elif hasattr(img_factory, '_img'):
+                img = img_factory._img
+            else:
+                img = img_factory
+            
+            ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(200, 200))
+            
+            ctk.CTkLabel(qr_win, image=ctk_img, text="").pack(pady=10)
+            ctk.CTkLabel(qr_win, text=url, font=FONT_BODY, text_color="gray").pack(pady=5)
+            
+            # Fullscreen Toggle Button
+            is_fullscreen = self.controller.attributes("-fullscreen")
+            btn_text = "🔳 Salir de Pantalla Completa" if is_fullscreen else "🔲 Pantalla Completa"
+            btn_color = COLOR_DANGER if is_fullscreen else COLOR_PRIMARY
+            
+            def toggle_and_close():
+                qr_win.destroy()
+                self.controller.toggle_fullscreen()
+                
+            ctk.CTkButton(qr_win, text=btn_text, command=toggle_and_close, 
+                         fg_color=btn_color, hover_color=btn_color).pack(pady=20)
+            
+        except Exception as e:
+            print(f"Error showing QR: {e}")
+            if 'qr_win' in locals() and qr_win.winfo_exists():
+                ctk.CTkLabel(qr_win, text=f"Error: {e}", text_color="red").pack(pady=20)

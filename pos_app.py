@@ -16,6 +16,8 @@ from updater import Updater
 import version
 from pdf_importer import import_inventory_from_pdf
 
+import json
+
 # UI Configuration
 ctk.set_appearance_mode("Light")
 ctk.set_default_color_theme("blue")
@@ -23,6 +25,9 @@ ctk.set_default_color_theme("blue")
 class POSApp(ctk.CTk):
     def __init__(self):
         super().__init__(fg_color=COLOR_BACKGROUND)
+        
+        # Load Settings
+        self.settings = self.load_settings()
         
         # Initialize Database
         database.init_db()
@@ -60,9 +65,14 @@ class POSApp(ctk.CTk):
         self.bind("<F5>", lambda e: self.checkout())
         self.bind("<Escape>", lambda e: self.clear_cart())
         self.bind("<Button-1>", lambda e: self.check_focus(e))
+        self.bind("<F11>", lambda e: self.toggle_fullscreen(from_key=True))
 
         # Initialize Session (AFTER UI IS BUILT)
         self.init_daily_session()
+
+        # Apply Fullscreen if saved
+        if self.settings.get("fullscreen", False):
+            self.attributes("-fullscreen", True)
 
         # Force focus on startup
         self.lift()
@@ -70,6 +80,53 @@ class POSApp(ctk.CTk):
         self.after(100, lambda: self.attributes('-topmost', False))
         self.after(200, lambda: self.left_panel.focus_entry())
         self.after(500, lambda: self.left_panel.focus_entry())
+
+        # Intercept Window Close Event
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def on_closing(self):
+        """Handle window close attempts"""
+        if self.attributes("-fullscreen"):
+            messagebox.showwarning("Modo Pantalla Completa", "No se puede cerrar la aplicación en modo pantalla completa.\Primero salga del modo pantalla completa usando el menú de administración.")
+            return
+        
+        self.destroy()
+
+    def load_settings(self):
+        try:
+            with open("settings.json", "r") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"fullscreen": False}
+
+    def save_settings(self):
+        try:
+            with open("settings.json", "w") as f:
+                json.dump(self.settings, f, indent=4)
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+
+    def toggle_fullscreen(self, from_key=False):
+        is_fullscreen = self.attributes("-fullscreen")
+        
+        if is_fullscreen:
+            # Exiting fullscreen requires password
+            password = simpledialog.askstring("Admin", "Contraseña de Administrador:", show='*', parent=self)
+            if password == "admin123":
+                self.attributes("-fullscreen", False)
+                self.settings["fullscreen"] = False
+                self.save_settings()
+            elif password is not None:
+                messagebox.showerror("Error", "Contraseña incorrecta")
+                # Maintain fullscreen if failed
+                self.focus_force()
+        else:
+            # Entering fullscreen is free
+            self.attributes("-fullscreen", True)
+            self.settings["fullscreen"] = True
+            self.save_settings()
+            
+        self.left_panel.focus_entry()
 
     def start_backend(self):
         try:
