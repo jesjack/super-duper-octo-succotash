@@ -12,27 +12,21 @@ class LeftPanel(ctk.CTkFrame):
         self.grid_rowconfigure(3, weight=1) # Cart expands
 
         # 1. Input Area
-        print("LeftPanel: Creating Input Frame...")
         self.input_frame = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, corner_radius=CORNER_RADIUS, border_width=1, border_color=COLOR_BORDER)
-        print("LeftPanel: Gridding Input Frame...")
         self.input_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
         
-        print("LeftPanel: Creating Scan Label...")
         self.lbl_scan = ctk.CTkLabel(self.input_frame, text="🔍 Escanear:", font=FONT_SUBHEADER, text_color=COLOR_TEXT)
         self.lbl_scan.pack(side="left", padx=(15, 5), pady=10)
         
-        print("LeftPanel: Creating Entry Scan...")
         self.entry_scan = ctk.CTkEntry(self.input_frame, width=350, font=FONT_SUBHEADER, height=INPUT_HEIGHT, 
                                        border_color=COLOR_BORDER, fg_color=COLOR_BACKGROUND, text_color=COLOR_TEXT)
         self.entry_scan.pack(side="left", padx=(0, 15), pady=10, fill="x", expand=True)
         self.entry_scan.bind("<Return>", self.on_scan)
         
         # 2. Product Info (Last Scanned)
-        print("LeftPanel: Creating Info Frame...")
         self.info_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.info_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=5)
         
-        print("LeftPanel: Creating Last Item Label...")
         self.lbl_last_item = ctk.CTkLabel(self.info_frame, text="Listo para escanear", font=FONT_SUBHEADER, text_color=COLOR_TEXT_LIGHT)
         self.lbl_last_item.pack(side="left")
 
@@ -46,13 +40,36 @@ class LeftPanel(ctk.CTkFrame):
         self.lbl_image = ctk.CTkLabel(self.image_frame, text="📷 Sin Imagen", text_color=COLOR_TEXT_LIGHT, font=FONT_BODY)
         self.lbl_image.pack(expand=True, fill="both")
 
-        # 4. Cart List (Scrollable)
-        # 4. Cart List (Scrollable)
-        print("LeftPanel: Creating Cart Frame...")
-        self.cart_frame = ctk.CTkScrollableFrame(self, label_text="🛒 Carrito de Compras", label_font=FONT_SUBHEADER, 
-                                                 fg_color=COLOR_SURFACE, border_width=1, border_color=COLOR_BORDER,
-                                                 label_text_color=COLOR_TEXT)
-        self.cart_frame.grid(row=3, column=0, sticky="nsew", padx=20, pady=(5, 20))
+        # 4. Cart List (Custom Scrollable Implementation to fix Linux Segfault)
+        self.cart_container = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, border_width=1, border_color=COLOR_BORDER)
+        self.cart_container.grid(row=3, column=0, sticky="nsew", padx=20, pady=(5, 20))
+        self.cart_container.grid_columnconfigure(0, weight=1)
+        self.cart_container.grid_rowconfigure(1, weight=1)
+
+        # Header
+        self.cart_header = ctk.CTkLabel(self.cart_container, text="🛒 Carrito de Compras", font=FONT_SUBHEADER, text_color=COLOR_TEXT)
+        self.cart_header.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+
+        # Canvas & Scrollbar
+        import tkinter as tk
+        self.cart_canvas = tk.Canvas(self.cart_container, bg=COLOR_SURFACE, highlightthickness=0)
+        self.cart_scrollbar = ctk.CTkScrollbar(self.cart_container, command=self.cart_canvas.yview)
+        self.cart_canvas.configure(yscrollcommand=self.cart_scrollbar.set)
+
+        self.cart_scrollbar.grid(row=1, column=1, sticky="ns", padx=(0,5), pady=5)
+        self.cart_canvas.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+
+        # Inner Frame (The actual cart_frame where items go)
+        # Note: We use a standard CTkFrame here, but inside the canvas
+        self.cart_frame = ctk.CTkFrame(self.cart_canvas, fg_color=COLOR_SURFACE)
+        self.cart_window_id = self.cart_canvas.create_window((0, 0), window=self.cart_frame, anchor="nw")
+
+        def _configure_cart_frame(event):
+            self.cart_canvas.configure(scrollregion=self.cart_canvas.bbox("all"))
+            self.cart_canvas.itemconfig(self.cart_window_id, width=event.width)
+
+        self.cart_frame.bind("<Configure>", _configure_cart_frame)
+        self.cart_canvas.bind("<Configure>", lambda e: self.cart_canvas.itemconfig(self.cart_window_id, width=e.width))
 
     def on_scan(self, event=None):
         barcode = self.entry_scan.get().strip()

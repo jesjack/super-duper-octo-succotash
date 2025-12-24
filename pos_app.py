@@ -30,22 +30,18 @@ class POSApp(ctk.CTk):
         self.safe_mode = safe_mode
         self.no_usb = no_usb
         
-        print("--- INICIANDO POS APP ---")
-        print(f"Modo Seguro: {self.safe_mode}")
-        print(f"Sin USB: {self.no_usb}")
+        if self.safe_mode:
+            print("--- MODO SEGURO ACTIVADO ---")
         
         # Load Settings
         self.settings = self.load_settings()
         
         # Initialize Database
-        print("Inicializando base de datos...")
         database.init_db()
-        print("Base de datos inicializada.")
         
         # Start Backend Server
         self.backend_process = None
         if not self.safe_mode:
-            print("Iniciando backend...")
             self.start_backend()
         else:
             print("SKIPPING: Backend (Safe Mode)")
@@ -55,7 +51,6 @@ class POSApp(ctk.CTk):
         self.updater = Updater(os.path.dirname(__file__))
         
         if not self.safe_mode and not self.no_usb:
-            print("Iniciando monitor USB...")
             self.start_usb_monitor()
         else:
             print("SKIPPING: USB Monitor")
@@ -67,8 +62,10 @@ class POSApp(ctk.CTk):
         self.cart = [] 
         self.current_session = None
         
+        self.cart = [] 
+        self.current_session = None
+        
         if not self.safe_mode:
-            print("Iniciando servicio de impresión...")
             self.printer = PrinterService()
         else:
             print("SKIPPING: Printer Service (Safe Mode)")
@@ -76,24 +73,14 @@ class POSApp(ctk.CTk):
         self.void_mode = False 
         
         # Layout
-        # Layout
-        print("Configurando Layout...")
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         # Components
-        print("Inicializando LeftPanel...")
         self.left_panel = LeftPanel(self, self)
-        print("LeftPanel inicializado.")
-        
-        print("Agregando LeftPanel al grid...")
         self.left_panel.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         
-        print("Inicializando RightPanel...")
         self.right_panel = RightPanel(self, self)
-        print("RightPanel inicializado.")
-        
-        print("Agregando RightPanel al grid...")
         self.right_panel.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
         # Key bindings
@@ -304,7 +291,6 @@ class POSApp(ctk.CTk):
              self.left_panel.focus_entry()
 
     def init_daily_session(self):
-        print("Verificando sesión diaria...")
         session = database.get_active_session()
         today_str = datetime.date.today().isoformat()
         
@@ -553,5 +539,4 @@ if __name__ == "__main__":
 
     print("Iniciando aplicación principal...")
     app = POSApp(safe_mode=args.safe, no_usb=args.no_usb)
-    print("Entrando a mainloop...")
     app.mainloop()
