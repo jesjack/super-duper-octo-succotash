@@ -12,34 +12,43 @@ class LeftPanel(ctk.CTkFrame):
         self.grid_rowconfigure(3, weight=1) # Cart expands
 
         # 1. Input Area
+        print("LeftPanel: Creating Input Frame...")
         self.input_frame = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, corner_radius=CORNER_RADIUS, border_width=1, border_color=COLOR_BORDER)
+        print("LeftPanel: Gridding Input Frame...")
         self.input_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
         
+        print("LeftPanel: Creating Scan Label...")
         self.lbl_scan = ctk.CTkLabel(self.input_frame, text="🔍 Escanear:", font=FONT_SUBHEADER, text_color=COLOR_TEXT)
         self.lbl_scan.pack(side="left", padx=(15, 5), pady=10)
         
+        print("LeftPanel: Creating Entry Scan...")
         self.entry_scan = ctk.CTkEntry(self.input_frame, width=350, font=FONT_SUBHEADER, height=INPUT_HEIGHT, 
                                        border_color=COLOR_BORDER, fg_color=COLOR_BACKGROUND, text_color=COLOR_TEXT)
         self.entry_scan.pack(side="left", padx=(0, 15), pady=10, fill="x", expand=True)
         self.entry_scan.bind("<Return>", self.on_scan)
         
         # 2. Product Info (Last Scanned)
+        print("LeftPanel: Creating Info Frame...")
         self.info_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.info_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=5)
         
+        print("LeftPanel: Creating Last Item Label...")
         self.lbl_last_item = ctk.CTkLabel(self.info_frame, text="Listo para escanear", font=FONT_SUBHEADER, text_color=COLOR_TEXT_LIGHT)
         self.lbl_last_item.pack(side="left")
 
         # 3. Product Image
+        print("LeftPanel: Creating Image Frame...")
         self.image_frame = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, height=220, corner_radius=CORNER_RADIUS, border_width=1, border_color=COLOR_BORDER)
         self.image_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
         self.image_frame.pack_propagate(False)
         
+        print("LeftPanel: Creating Image Label...")
         self.lbl_image = ctk.CTkLabel(self.image_frame, text="📷 Sin Imagen", text_color=COLOR_TEXT_LIGHT, font=FONT_BODY)
         self.lbl_image.pack(expand=True, fill="both")
 
         # 4. Cart List (Scrollable)
         # 4. Cart List (Scrollable)
+        print("LeftPanel: Creating Cart Frame...")
         self.cart_frame = ctk.CTkScrollableFrame(self, label_text="🛒 Carrito de Compras", label_font=FONT_SUBHEADER, 
                                                  fg_color=COLOR_SURFACE, border_width=1, border_color=COLOR_BORDER,
                                                  label_text_color=COLOR_TEXT)
