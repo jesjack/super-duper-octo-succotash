@@ -36,7 +36,9 @@ class USBMonitor:
             self.known_drives = self._get_current_drives()
             self.thread = threading.Thread(target=self._monitor_loop, daemon=True)
             self.thread.start()
-            print("USB Monitor: Iniciado")
+            print("USB Monitor: Iniciado (Thread launched)")
+        else:
+             print("USB Monitor: Ya estaba corriendo")
     
     def stop(self):
         """Detiene el monitoreo"""
@@ -53,6 +55,7 @@ class USBMonitor:
             Set de letras de unidad (ej: {'C:\\', 'D:\\'})
         """
         drives = set()
+        # print("DEBUG: Checking partitions...") # Granular debug
         for partition in psutil.disk_partitions(all=False):
             # Solo unidades removibles (USB) y fijas
             if 'removable' in partition.opts.lower() or 'fixed' in partition.opts.lower():
@@ -145,6 +148,8 @@ class USBMonitor:
                                 print(f"USB Monitor: Error en callback: {e}")
                             # Solo procesamos la primera actualización encontrada
                             break
+                    
+                    # print(f"DEBUG: USB Check complete. Scanned {len(new_drives)} new drives.")
                 
                 # Actualizar conjunto de unidades conocidas
                 self.known_drives = current_drives

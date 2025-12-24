@@ -13,8 +13,10 @@ from ui.right_panel import RightPanel
 from ui.checkout_dialog import CheckoutDialog
 from usb_monitor import USBMonitor
 from updater import Updater
+from updater import Updater
 import version
 from pdf_importer import import_inventory_from_pdf
+import argparse
 
 import json
 
@@ -23,23 +25,40 @@ ctk.set_appearance_mode("Light")
 ctk.set_default_color_theme("blue")
 
 class POSApp(ctk.CTk):
-    def __init__(self):
+    def __init__(self, safe_mode=False, no_usb=False):
         super().__init__(fg_color=COLOR_BACKGROUND)
+        self.safe_mode = safe_mode
+        self.no_usb = no_usb
+        
+        print("--- INICIANDO POS APP ---")
+        print(f"Modo Seguro: {self.safe_mode}")
+        print(f"Sin USB: {self.no_usb}")
         
         # Load Settings
         self.settings = self.load_settings()
         
         # Initialize Database
+        print("Inicializando base de datos...")
         database.init_db()
+        print("Base de datos inicializada.")
         
         # Start Backend Server
         self.backend_process = None
-        self.start_backend()
+        if not self.safe_mode:
+            print("Iniciando backend...")
+            self.start_backend()
+        else:
+            print("SKIPPING: Backend (Safe Mode)")
         
         # Initialize USB Monitor for auto-updates
         self.usb_monitor = None
         self.updater = Updater(os.path.dirname(__file__))
-        self.start_usb_monitor()
+        
+        if not self.safe_mode and not self.no_usb:
+            print("Iniciando monitor USB...")
+            self.start_usb_monitor()
+        else:
+            print("SKIPPING: USB Monitor")
 
         self.title("Punto de Venta")
         self.geometry("1024x768")
@@ -47,7 +66,13 @@ class POSApp(ctk.CTk):
         # Data
         self.cart = [] 
         self.current_session = None
-        self.printer = PrinterService()
+        
+        if not self.safe_mode:
+            print("Iniciando servicio de impresión...")
+            self.printer = PrinterService()
+        else:
+            print("SKIPPING: Printer Service (Safe Mode)")
+            self.printer = None
         self.void_mode = False 
         
         # Layout
@@ -269,6 +294,7 @@ class POSApp(ctk.CTk):
              self.left_panel.focus_entry()
 
     def init_daily_session(self):
+        print("Verificando sesión diaria...")
         session = database.get_active_session()
         today_str = datetime.date.today().isoformat()
         
@@ -371,13 +397,24 @@ class POSApp(ctk.CTk):
 
     def checkout(self):
         if not self.cart: return
+        # Check printer
+        if not self.printer:
+             messagebox.showwarning("Aviso", "Servicio de impresión no disponible (Modo Seguro)")
+             # Proceed without printing logic that depends on self.printer being a Service object
+             # For now, just return or handle gracefully.
+             # Actually, let's allow checkout but skip print.
+        
         total_sum = sum(item['total'] for item in self.cart)
         
         def on_payment_confirmed(cash, change):
             database.record_sale(self.current_session, self.cart, total_sum, "EFECTIVO")
-            success = self.printer.print_receipt(self.cart, total_sum, "EFECTIVO", cash, change)
-            if not success:
-                messagebox.showwarning("Error de Impresora", "No se pudo imprimir el ticket, pero la venta se guardó.")
+            
+            if self.printer:
+                success = self.printer.print_receipt(self.cart, total_sum, "EFECTIVO", cash, change)
+                if not success:
+                    messagebox.showwarning("Error de Impresora", "No se pudo imprimir el ticket, pero la venta se guardó.")
+            else:
+                 print("Impresión omitida (PrinterService es None)")
             
             self.clear_cart()
             self.left_panel.set_last_item(f"Venta Completada! Cambio: ${change:.2f}", COLOR_SUCCESS)
@@ -499,5 +536,12 @@ class POSApp(ctk.CTk):
             messagebox.showerror("Error Crítico", f"Falló la importación: {e}")
 
 if __name__ == "__main__":
-    app = POSApp()
+    parser = argparse.ArgumentParser(description="POS Application")
+    parser.add_argument("--safe", action="store_true", help="Start in safe mode (no backend, no printer, no usb)")
+    parser.add_argument("--no-usb", action="store_true", help="Start without USB monitor")
+    args = parser.parse_args()
+
+    print("Iniciando aplicación principal...")
+    app = POSApp(safe_mode=args.safe, no_usb=args.no_usb)
+    print("Entrando a mainloop...")
     app.mainloop()
