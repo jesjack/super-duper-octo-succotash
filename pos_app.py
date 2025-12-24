@@ -76,14 +76,24 @@ class POSApp(ctk.CTk):
         self.void_mode = False 
         
         # Layout
+        # Layout
+        print("Configurando Layout...")
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
         # Components
+        print("Inicializando LeftPanel...")
         self.left_panel = LeftPanel(self, self)
+        print("LeftPanel inicializado.")
+        
+        print("Agregando LeftPanel al grid...")
         self.left_panel.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         
+        print("Inicializando RightPanel...")
         self.right_panel = RightPanel(self, self)
+        print("RightPanel inicializado.")
+        
+        print("Agregando RightPanel al grid...")
         self.right_panel.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
 
         # Key bindings
