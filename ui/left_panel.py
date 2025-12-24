@@ -58,8 +58,8 @@ class LeftPanel(ctk.CTkFrame):
         self.cart_canvas.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
         # Inner Frame (The actual cart_frame where items go)
-        # Using tk.Frame specifically to avoid overhead/conflicts inside Canvas
-        self.cart_frame = ctk.CTkFrame(self.cart_canvas, fg_color=COLOR_SURFACE)
+        # Using tk.Frame explicitly for stability inside tk.Canvas
+        self.cart_frame = tk.Frame(self.cart_canvas, bg=COLOR_SURFACE)
         self.cart_window_id = self.cart_canvas.create_window((0, 0), window=self.cart_frame, anchor="nw")
 
         # FIX: Separate bindings to avoid infinite loop
@@ -85,12 +85,14 @@ class LeftPanel(ctk.CTkFrame):
             widget.destroy()
             
         headers = ["Cant.", "Producto", "Precio", "Total"]
-        # Header Row Background
-        header_bg = ctk.CTkFrame(self.cart_frame, fg_color=COLOR_BACKGROUND, height=30, corner_radius=5)
+        # Header Row Background - Using tk.Frame for background to match parent
+        header_bg = tk.Frame(self.cart_frame, bg=COLOR_BACKGROUND, height=30)
         header_bg.grid(row=0, column=0, columnspan=4, sticky="ew", pady=(0, 5))
         
         for i, h in enumerate(headers):
-            lbl = ctk.CTkLabel(self.cart_frame, text=h, font=FONT_BODY_BOLD, text_color=COLOR_TEXT)
+            # Note: master is self.cart_frame which is now a tk.Frame
+            # We can still put ctk widgets inside a tk frame, usually works better than the reverse
+            lbl = ctk.CTkLabel(self.cart_frame, text=h, font=FONT_BODY_BOLD, text_color=COLOR_TEXT, bg_color=COLOR_SURFACE)
             lbl.grid(row=0, column=i, padx=10, pady=5, sticky="w" if i < 2 else "e")
 
         # Configure columns to stretch properly
@@ -101,10 +103,10 @@ class LeftPanel(ctk.CTkFrame):
             # Alternating row colors could be done with frames, but for simplicity keeping labels
             # Using a separator line or just spacing
             
-            ctk.CTkLabel(self.cart_frame, text=str(item['quantity']), font=FONT_BODY, text_color=COLOR_TEXT).grid(row=r, column=0, padx=10, pady=2, sticky="w")
-            ctk.CTkLabel(self.cart_frame, text=item['name'], font=FONT_BODY, text_color=COLOR_TEXT).grid(row=r, column=1, padx=10, pady=2, sticky="w")
-            ctk.CTkLabel(self.cart_frame, text=f"${item['price']:.2f}", font=FONT_BODY, text_color=COLOR_TEXT).grid(row=r, column=2, padx=10, pady=2, sticky="e")
-            ctk.CTkLabel(self.cart_frame, text=f"${item['total']:.2f}", font=FONT_BODY_BOLD, text_color=COLOR_TEXT).grid(row=r, column=3, padx=10, pady=2, sticky="e")
+            ctk.CTkLabel(self.cart_frame, text=str(item['quantity']), font=FONT_BODY, text_color=COLOR_TEXT, bg_color=COLOR_SURFACE).grid(row=r, column=0, padx=10, pady=2, sticky="w")
+            ctk.CTkLabel(self.cart_frame, text=item['name'], font=FONT_BODY, text_color=COLOR_TEXT, bg_color=COLOR_SURFACE).grid(row=r, column=1, padx=10, pady=2, sticky="w")
+            ctk.CTkLabel(self.cart_frame, text=f"${item['price']:.2f}", font=FONT_BODY, text_color=COLOR_TEXT, bg_color=COLOR_SURFACE).grid(row=r, column=2, padx=10, pady=2, sticky="e")
+            ctk.CTkLabel(self.cart_frame, text=f"${item['total']:.2f}", font=FONT_BODY_BOLD, text_color=COLOR_TEXT, bg_color=COLOR_SURFACE).grid(row=r, column=3, padx=10, pady=2, sticky="e")
 
     def set_last_item(self, text, color):
         self.lbl_last_item.configure(text=text, text_color=color)
