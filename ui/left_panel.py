@@ -31,12 +31,10 @@ class LeftPanel(ctk.CTkFrame):
         self.lbl_last_item.pack(side="left")
 
         # 3. Product Image
-        print("LeftPanel: Creating Image Frame...")
         self.image_frame = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, height=220, corner_radius=CORNER_RADIUS, border_width=1, border_color=COLOR_BORDER)
         self.image_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=10)
         self.image_frame.pack_propagate(False)
         
-        print("LeftPanel: Creating Image Label...")
         self.lbl_image = ctk.CTkLabel(self.image_frame, text="📷 Sin Imagen", text_color=COLOR_TEXT_LIGHT, font=FONT_BODY)
         self.lbl_image.pack(expand=True, fill="both")
 
