@@ -38,36 +38,36 @@ class LeftPanel(ctk.CTkFrame):
         self.lbl_image = ctk.CTkLabel(self.image_frame, text="📷 Sin Imagen", text_color=COLOR_TEXT_LIGHT, font=FONT_BODY)
         self.lbl_image.pack(expand=True, fill="both")
 
-        # 4. Cart List (Custom Scrollable Implementation to fix Linux Segfault)
-        self.cart_container = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, border_width=1, border_color=COLOR_BORDER)
-        self.cart_container.grid(row=3, column=0, sticky="nsew", padx=20, pady=(5, 20))
-        self.cart_container.grid_columnconfigure(0, weight=1)
-        self.cart_container.grid_rowconfigure(1, weight=1)
+        # 4. Cart List (DISABLED FOR DEBUGGING)
+        # self.cart_container = ctk.CTkFrame(self, fg_color=COLOR_SURFACE, border_width=1, border_color=COLOR_BORDER)
+        # self.cart_container.grid(row=3, column=0, sticky="nsew", padx=20, pady=(5, 20))
+        # self.cart_container.grid_columnconfigure(0, weight=1)
+        # self.cart_container.grid_rowconfigure(1, weight=1)
 
-        # Header
-        self.cart_header = ctk.CTkLabel(self.cart_container, text="🛒 Carrito de Compras", font=FONT_SUBHEADER, text_color=COLOR_TEXT)
-        self.cart_header.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+        # # Header
+        # self.cart_header = ctk.CTkLabel(self.cart_container, text="🛒 Carrito de Compras", font=FONT_SUBHEADER, text_color=COLOR_TEXT)
+        # self.cart_header.grid(row=0, column=0, padx=10, pady=5, sticky="w")
 
-        # Canvas & Scrollbar
-        import tkinter as tk
-        self.cart_canvas = tk.Canvas(self.cart_container, bg=COLOR_SURFACE, highlightthickness=0)
-        self.cart_scrollbar = ctk.CTkScrollbar(self.cart_container, command=self.cart_canvas.yview)
-        self.cart_canvas.configure(yscrollcommand=self.cart_scrollbar.set)
+        # # Canvas & Scrollbar
+        # import tkinter as tk
+        # self.cart_canvas = tk.Canvas(self.cart_container, bg=COLOR_SURFACE, highlightthickness=0)
+        # self.cart_scrollbar = ctk.CTkScrollbar(self.cart_container, command=self.cart_canvas.yview)
+        # self.cart_canvas.configure(yscrollcommand=self.cart_scrollbar.set)
 
-        self.cart_scrollbar.grid(row=1, column=1, sticky="ns", padx=(0,5), pady=5)
-        self.cart_canvas.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        # self.cart_scrollbar.grid(row=1, column=1, sticky="ns", padx=(0,5), pady=5)
+        # self.cart_canvas.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
-        # Inner Frame (The actual cart_frame where items go)
-        # Note: We use a standard CTkFrame here, but inside the canvas
-        self.cart_frame = ctk.CTkFrame(self.cart_canvas, fg_color=COLOR_SURFACE)
-        self.cart_window_id = self.cart_canvas.create_window((0, 0), window=self.cart_frame, anchor="nw")
+        # # Inner Frame (The actual cart_frame where items go)
+        # # Note: We use a standard CTkFrame here, but inside the canvas
+        # self.cart_frame = ctk.CTkFrame(self.cart_canvas, fg_color=COLOR_SURFACE)
+        # self.cart_window_id = self.cart_canvas.create_window((0, 0), window=self.cart_frame, anchor="nw")
 
-        def _configure_cart_frame(event):
-            self.cart_canvas.configure(scrollregion=self.cart_canvas.bbox("all"))
-            self.cart_canvas.itemconfig(self.cart_window_id, width=event.width)
+        # def _configure_cart_frame(event):
+        #     self.cart_canvas.configure(scrollregion=self.cart_canvas.bbox("all"))
+        #     self.cart_canvas.itemconfig(self.cart_window_id, width=event.width)
 
-        self.cart_frame.bind("<Configure>", _configure_cart_frame)
-        self.cart_canvas.bind("<Configure>", lambda e: self.cart_canvas.itemconfig(self.cart_window_id, width=e.width))
+        # self.cart_frame.bind("<Configure>", _configure_cart_frame)
+        # self.cart_canvas.bind("<Configure>", lambda e: self.cart_canvas.itemconfig(self.cart_window_id, width=e.width))
 
     def on_scan(self, event=None):
         barcode = self.entry_scan.get().strip()
@@ -76,8 +76,9 @@ class LeftPanel(ctk.CTkFrame):
         self.controller.process_barcode(barcode)
 
     def update_cart_display(self, cart):
-        for widget in self.cart_frame.winfo_children():
-            widget.destroy()
+        return # DEBUG
+        # for widget in self.cart_frame.winfo_children():
+        #     widget.destroy()
             
         headers = ["Cant.", "Producto", "Precio", "Total"]
         # Header Row Background
