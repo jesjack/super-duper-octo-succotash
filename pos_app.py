@@ -14,8 +14,7 @@ from ui.styles import *
 from ui.left_panel import LeftPanel
 from ui.right_panel import RightPanel
 from ui.checkout_dialog import CheckoutDialog
-from usb_monitor import USBMonitor
-from updater import Updater
+
 import version
 from pdf_importer import import_inventory_from_pdf
 import argparse
@@ -31,10 +30,9 @@ ctk.set_appearance_mode("Light")
 ctk.set_default_color_theme("blue")
 
 class POSApp(ctk.CTk):
-    def __init__(self, safe_mode: bool = False, no_usb: bool = False):
-        super().__init__(fg_color=COLOR_BACKGROUND)
+    def __init__(self, safe_mode: bool = False):
+        super().__init__(fg_color=COLOR_BACKGROUND) # Fluent Background
         self.safe_mode = safe_mode
-        self.no_usb = no_usb
         
         if self.safe_mode:
             print("--- MODO SEGURO ACTIVADO ---")
@@ -54,14 +52,8 @@ class POSApp(ctk.CTk):
         else:
             print("SKIPPING: Backend (Safe Mode)")
         
-        # Initialize USB Monitor for auto-updates
-        self.usb_monitor: Optional[USBMonitor] = None
-        self.updater = Updater(os.path.dirname(__file__))
-        
-        if not self.safe_mode and not self.no_usb:
-            self.start_usb_monitor()
-        else:
-            print("SKIPPING: USB Monitor")
+        # Updater removed
+
 
         self.title("Punto de Venta")
         self.geometry("1024x768")
@@ -134,7 +126,7 @@ class POSApp(ctk.CTk):
     def on_closing(self):
         """Handle window close attempts"""
         if self.attributes("-fullscreen"):
-            messagebox.showwarning("Modo Pantalla Completa", "No se puede cerrar la aplicación en modo pantalla completa.\Primero salga del modo pantalla completa usando el menú de administración.")
+            messagebox.showwarning("Modo Pantalla Completa", "No se puede cerrar la aplicación en modo pantalla completa.\nPrimero salga del modo pantalla completa usando el menú de administración.")
             return
         
         self.destroy()
@@ -210,94 +202,7 @@ class POSApp(ctk.CTk):
     def open_admin_view(self) -> None:
         self.process_manager.open_admin_view()
     
-    def on_update_detected(self, update_info: Dict[str, Any]) -> None:
-        """Callback cuando se detecta un paquete de actualización en USB"""
-        try:
-            can_update, msg = self.updater.can_update(update_info)
-            if not can_update:
-                print(f"No se puede actualizar: {msg}")
-                return
-            self.show_update_dialog(update_info)
-        except Exception as e:
-            print(f"Error procesando actualización: {e}")
 
-    def show_update_dialog(self, update_info: Dict[str, Any]) -> None:
-        # Keeps this logic here as it is purely UI orchestration 
-        # unless we move it to UpdateManager, but user's request is met nicely with current split.
-        try:
-            if self.usb_monitor:
-                self.usb_monitor.stop()
-            
-            dialog = ctk.CTkToplevel(self)
-            dialog.title("Actualización")
-            dialog.geometry("400x200")
-            dialog.transient(self)
-            dialog.grab_set()
-            
-            dialog.update_idletasks()
-            x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
-            y = (dialog.winfo_screenheight() // 2) - (200 // 2)
-            dialog.geometry(f"400x200+{x}+{y}")
-            
-            label = ctk.CTkLabel(
-                dialog,
-                text=f"Actualizando a versión {update_info['version']}...\n\nPor favor espere",
-                font=("Arial", 16)
-            )
-            label.pack(expand=True, pady=20)
-            
-            progress = ctk.CTkProgressBar(dialog, mode="indeterminate")
-            progress.pack(pady=10, padx=20, fill="x")
-            progress.start()
-            
-            dialog.update()
-            
-            success = self.updater.perform_update(update_info)
-            
-            progress.stop()
-            
-            if success:
-                label.configure(text=f"✅ Actualización completada\n\nPuede retirar la USB de forma segura")
-                progress.pack_forget()
-                
-                def restart():
-                    dialog.destroy()
-                    self.updater.restart_application()
-                
-                btn = ctk.CTkButton(
-                    dialog,
-                    text="Reiniciar Aplicación",
-                    command=restart,
-                    fg_color=COLOR_SUCCESS,
-                    hover_color="#27AE60"
-                )
-                btn.pack(pady=10)
-            else:
-                label.configure(text=f"❌ Error durante la actualización\n\nConsulte los logs para más detalles")
-                progress.pack_forget()
-                
-                btn = ctk.CTkButton(
-                    dialog,
-                    text="Cerrar",
-                    command=dialog.destroy,
-                    fg_color=COLOR_DANGER
-                )
-                btn.pack(pady=10)
-            
-        except Exception as e:
-            print(f"Error mostrando diálogo de actualización: {e}")
-            messagebox.showerror("Error", f"Error durante actualización: {e}")
-
-    def start_usb_monitor(self) -> None:
-         try:
-            self.usb_monitor = USBMonitor(
-                update_callback=self.on_update_detected,
-                check_interval=2.0
-            )
-            self.usb_monitor.start()
-            print(f"USB Monitor iniciado (Versión actual: {version.VERSION})")
-         except Exception as e:
-            print(f"Error iniciando USB monitor: {e}")
 
     def update_ui(self) -> None:
         self.left_panel.update_cart_display(self.cart)
@@ -342,10 +247,9 @@ class POSApp(ctk.CTk):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="POS Application")
-    parser.add_argument("--safe", action="store_true", help="Start in safe mode (no backend, no printer, no usb)")
-    parser.add_argument("--no-usb", action="store_true", help="Start without USB monitor")
+    parser.add_argument("--safe", action="store_true", help="Start in safe mode (no backend, no printer)")
     args = parser.parse_args()
 
     print("Iniciando aplicación principal...")
-    app = POSApp(safe_mode=args.safe, no_usb=args.no_usb)
+    app = POSApp(safe_mode=args.safe)
     app.mainloop()
