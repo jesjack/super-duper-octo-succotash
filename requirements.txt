@@ -7,7 +7,7 @@ psutil
 werkzeug
 python-barcode
 flask
-django-qrcode
+qrcode[pil]
 requests
 pillow
 customtkinter

@@ -203,19 +203,80 @@ class RightPanel(ctk.CTkFrame):
 
     def show_qr_code(self):
         try:
+            import qrcode
+            from PIL import Image
+            import io
+            
             ip = self.get_local_ip()
             url = f"http://{ip}:5000"
             
             qr_win = ctk.CTkToplevel(self)
             qr_win.title("Acceso Admin")
-            qr_win.geometry("340x480")
+            qr_win.geometry("380x580")
             qr_win.attributes('-topmost', True)
             qr_win.lift()
-            
             qr_win.configure(fg_color=COLOR_BACKGROUND)
+            qr_win.resizable(False, False)
             
-            # Simple QR logic (simplified for brevity)
-            ctk.CTkLabel(qr_win, text="Escanea para admin").pack()
+            # Container frame
+            container = ctk.CTkFrame(qr_win, fg_color=COLOR_SURFACE, corner_radius=CORNER_RADIUS_CARD,
+                                    border_width=1, border_color=COLOR_BORDER)
+            container.pack(fill="both", expand=True, padx=20, pady=20)
+            
+            # Title
+            ctk.CTkLabel(container, text="Acceso Administración", 
+                        font=FONT_HEADER, text_color=COLOR_TEXT).pack(pady=(24, 8))
+            
+            # Generate QR Code
+            qr = qrcode.QRCode(version=1, box_size=10, border=2)
+            qr.add_data(url)
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+            
+            # Convert to CTkImage
+            qr_img = qr_img.resize((280, 280), Image.Resampling.LANCZOS)
+            qr_ctk_image = ctk.CTkImage(light_image=qr_img, dark_image=qr_img, size=(280, 280))
+            
+            # Display QR
+            qr_label = ctk.CTkLabel(container, image=qr_ctk_image, text="")
+            qr_label.pack(pady=(16, 16))
+            
+            # URL Display
+            url_frame = ctk.CTkFrame(container, fg_color=COLOR_SURFACE_ALT, corner_radius=CORNER_RADIUS)
+            url_frame.pack(fill="x", padx=24, pady=(0, 16))
+            
+            ctk.CTkLabel(url_frame, text=url, font=FONT_BODY, text_color=COLOR_PRIMARY).pack(pady=12)
+            
+            # Action Buttons
+            btn_frame = ctk.CTkFrame(container, fg_color="transparent")
+            btn_frame.pack(fill="x", padx=24, pady=(0, 24))
+            
+            # Copy URL Button
+            def copy_url():
+                qr_win.clipboard_clear()
+                qr_win.clipboard_append(url)
+                messagebox.showinfo("Copiado", f"URL copiada al portapapeles:\n{url}", parent=qr_win)
+            
+            btn_copy = ctk.CTkButton(btn_frame, text="Copiar URL", 
+                                    font=FONT_BODY, height=BUTTON_HEIGHT,
+                                    fg_color=COLOR_SECONDARY, hover_color=COLOR_SECONDARY_HOVER,
+                                    corner_radius=CORNER_RADIUS,
+                                    command=copy_url)
+            btn_copy.pack(fill="x", pady=(0, 8))
+            
+            # Fullscreen Toggle Button
+            btn_fullscreen = ctk.CTkButton(btn_frame, text="Pantalla Completa", 
+                                          font=FONT_BODY, height=BUTTON_HEIGHT,
+                                          fg_color=COLOR_PRIMARY, hover_color=COLOR_PRIMARY_HOVER,
+                                          corner_radius=CORNER_RADIUS,
+                                          command=lambda: [self.controller.toggle_fullscreen(), qr_win.destroy()])
+            btn_fullscreen.pack(fill="x")
+            
+            # Info text
+            ctk.CTkLabel(container, text="Escanea el código QR con tu dispositivo móvil", 
+                        font=FONT_SMALL, text_color=COLOR_TEXT_LIGHT).pack(pady=(0, 16))
             
         except Exception as e:
             print(f"Error showing QR: {e}")
+            import traceback
+            traceback.print_exc()
