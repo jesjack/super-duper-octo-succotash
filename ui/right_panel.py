@@ -68,11 +68,10 @@ class RightPanel(ctk.CTkFrame):
         
         self.btn_pay = ctk.CTkButton(self.card, text=" Cobrar (F5)", image=self.icon_pay, compound="left",
                                      font=FONT_HEADER, height=60, 
-                                     fg_color=COLOR_PRIMARY, hover_color=COLOR_PRIMARY_HOVER, 
+                                     fg_color=STATUS_IDLE, hover_color=COLOR_PRIMARY_HOVER, 
                                      corner_radius=CORNER_RADIUS,
                                      state="disabled",
                                      command=self.controller.checkout)
-        self.btn_pay._fg_color = STATUS_IDLE 
         self.btn_pay.pack(pady=(0, 16), padx=24, fill="x")
 
         # 4. Destructive Action (Clear) - HIDDEN BY DEFAULT
